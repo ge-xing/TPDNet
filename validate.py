@@ -24,10 +24,10 @@ class MirrorTrainer(Trainer):
         
         from networks.tpdnet.model import SegFormerAdapterExtraDepthMono
         self.model = SegFormerAdapterExtraDepthMono(C_out=6)
-        self.load_state_dict("./logs/tpdm/model/final_model_0.6581.pt", strict=True)
+        self.load_state_dict("./logs/tpdm/model/best_model_0.6690.pt", strict=True)
         self.save_dir = "./results/tqdm"
         os.makedirs(self.save_dir, exist_ok=True)
-        self.threshold = 0.5
+        self.threshold = 0.7
 
         self.index = 0 
 

@@ -22,7 +22,7 @@ If you want to train the model on multiple GPUs, you can set env to `DDP` and nu
 ## 3. Predict results
 
 The predict script is `validate.py`.
-In this script, we load the trained model (`final_model_0.6581.pt`) and predict the results on the test set.
+In this script, we load the trained model (`best_model_0.6690.pt`) and predict the results on the test set.
 The predicted results will be saved at `./results/tqdm`.
 
 

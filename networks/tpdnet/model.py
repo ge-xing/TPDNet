@@ -153,7 +153,7 @@ class SegFormerAdapterExtraDepthMono(nn.Module):
             )
         return upsampled_logits
     
-    
+
 class DepthAwareAdaptor(nn.Module):
     def __init__(self, embed_dims, is_guided=True):
         super().__init__()
