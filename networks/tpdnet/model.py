@@ -84,38 +84,11 @@ def segformer_adapter(pretrained=True, scale_factor=1, extra_channel=1, is_guide
         config.label2id = label2id
         model = SegformerForSemanticSegmentationAdapter(config)
         return model 
-
-
-class Memory(nn.Module):
-    def __init__(self):
-        super(Memory, self).__init__()
- 
-    def forward(self, m_in, m_out, q_in):  # m_in: o,c,t,h,w
-        B, T, D_e, H, W = m_in.size()
-        # _, D_o, _, _, _ = m_out.size()
-        m_in = m_in.view(B, D_e, T, H, W)
-        mi = m_in.view(B, D_e, T*H*W) 
-        mi = torch.transpose(mi, 1, 2)  # b, THW, emb
- 
-        qi = q_in.view(B, D_e, H*W)  # b, emb, HW
- 
-        p = torch.bmm(mi, qi) # b, THW, HW
-        p = p / math.sqrt(D_e)
-        p = torch.softmax(p, dim=1) # b, THW, HW
-
-        m_out = m_out.view(B, D_e, T, H, W)
-        mo = m_out.view(B, D_e, T*H*W) 
-        mem = torch.bmm(mo, p) # Weighted-sum B, D_o, HW
-        mem = mem.view(B, D_e, H, W)
-
-        return mem 
-
     
 class SegFormerAdapterExtraDepthMono(nn.Module):
     def __init__(self, pretrianed=True, scale_factor=1, C_out=3, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self.memoy_new = Memory()
         self.depth_encoder, _ = load_depth_model()
         for p in self.depth_encoder.parameters():
             p.requires_grad = False
@@ -151,9 +124,8 @@ class SegFormerAdapterExtraDepthMono(nn.Module):
 
         B, T, C, W, H = x.shape
         x = x.reshape(B*T, C, W, H)
+        
         x = self.depth_encoder(x)[-1]
-
-        memory_with_depth = features_high_level
       
         depth_value = x.reshape(B, T, -1, x.shape[2], x.shape[3])
 
@@ -163,11 +135,6 @@ class SegFormerAdapterExtraDepthMono(nn.Module):
 
         hidden_states, hidden_states_extra = self.model.forward_featuers(target_x, adaptor_depth)
         encoder_features = list(hidden_states)
-
-        q = encoder_features[-1]
-        depth_feature = self.memoy_new(memory_with_depth, memory_with_depth, q)
-        q = q + depth_feature
-        encoder_features[-1] = q
 
         logits = self.model.decode(encoder_features)
 
